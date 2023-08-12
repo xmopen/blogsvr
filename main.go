@@ -63,8 +63,6 @@ func main() {
 		close:  make(chan error, 1), // 容量为1不阻塞.
 	}
 
-	go func() {
-		app.init(ctx)
-	}()
+	app.init(ctx)
 	app.quit()
 }
