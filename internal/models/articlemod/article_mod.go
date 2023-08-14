@@ -38,7 +38,7 @@ type Article struct {
 // AllArticles 获取所有文章信息.
 func AllArticles() ([]*Article, error) {
 	articleList := make([]*Article, 0)
-	result := config.BlogsDataBase().Table(articleTableName).Where("publish = ", ArticlePublish).Find(&articleList)
+	result := config.BlogsDataBase().Table(articleTableName).Where("publish = ?", ArticlePublish).Find(&articleList)
 	if result.Error != nil {
 		// ErrRecordNotFound
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
