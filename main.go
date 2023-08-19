@@ -30,6 +30,7 @@ func (a *app) init(ctx context.Context) {
 			a.close <- fmt.Errorf("syscall:[%+v]\n", r)
 		}
 	}()
+
 	endpoint.Init(a.engine)
 	a.run(ctx)
 }

@@ -2,8 +2,13 @@
 package articlemanager
 
 import (
+	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
+	"unsafe"
+
+	"github.com/xmopen/golib/pkg/xlogging"
 
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
 
@@ -13,6 +18,9 @@ import (
 var (
 	articleManagerInstance     *ArticleManager
 	articleManagerInstanceOnce sync.Once
+
+	// xlog for article manager module.
+	xlog = xlogging.Tag("article.manager")
 )
 
 // ArticleManager 文章管理器.
@@ -45,14 +53,18 @@ func loadAllPublishedArticles(param any) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	cacheValue := &articleCacheValue{
+	publishedArticlesCacheValue := &articleCacheValue{
 		allArticlesCache:  articles,
 		articleID2Article: make(map[int]*articlemod.Article),
 	}
 	for _, item := range articles {
-		cacheValue.articleID2Article[item.ID] = item
+		publishedArticlesCacheValue.articleID2Article[item.ID] = item
 	}
-	return cacheValue, nil
+	dataBytes, _ := json.Marshal(publishedArticlesCacheValue)
+	str := string(dataBytes)
+	fmt.Println(str)
+	xlog.Infof("cache value size:[%+d]", unsafe.Sizeof(str))
+	return publishedArticlesCacheValue, nil
 }
 
 // AllPublishedArticles 获取已经发布的所有文章.

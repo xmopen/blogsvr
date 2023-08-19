@@ -16,10 +16,8 @@ type ArticlePublishType int8
 const (
 	// ArticlePublishNotPublish 文章未发布.
 	ArticlePublishNotPublish ArticlePublishType = iota
-	// ArticlePublishOldPublished V1文章发布状态.
-	ArticlePublishOldPublished
-	// ArticlePublish 文章发布.
-	ArticlePublish
+	// ArticlePublished published.
+	ArticlePublished
 )
 
 // Article 文章.
@@ -31,6 +29,7 @@ type Article struct {
 	Content string `json:"content" gorm:"column:content"`
 	SubHead string `json:"sub_head" gorm:"column:subhead"`
 	Img     string `json:"img" gorm:"column:img"`
+	Type    string `json:"type" gorm:"column:type"`
 	TypeID  string `json:"type_id" gorm:"column:type_id"` // 分类ID.
 	Publish int    `json:"publish" gorm:"column:publish"` // 是否发布.
 }
@@ -38,7 +37,8 @@ type Article struct {
 // AllArticles 获取所有文章信息.
 func AllArticles() ([]*Article, error) {
 	articleList := make([]*Article, 0)
-	result := config.BlogsDataBase().Table(articleTableName).Where("publish = ?", ArticlePublish).Find(&articleList)
+	result := config.BlogsDataBase().Table(articleTableName).Where("publish = ?", ArticlePublished).
+		Order("id desc").Find(&articleList)
 	if result.Error != nil {
 		// ErrRecordNotFound
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
