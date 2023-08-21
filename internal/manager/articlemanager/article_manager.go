@@ -2,11 +2,8 @@
 package articlemanager
 
 import (
-	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/xmopen/golib/pkg/xlogging"
 
@@ -60,10 +57,6 @@ func loadAllPublishedArticles(param any) (any, error) {
 	for _, item := range articles {
 		publishedArticlesCacheValue.articleID2Article[item.ID] = item
 	}
-	dataBytes, _ := json.Marshal(publishedArticlesCacheValue)
-	str := string(dataBytes)
-	fmt.Println(str)
-	xlog.Infof("cache value size:[%+d]", unsafe.Sizeof(str))
 	return publishedArticlesCacheValue, nil
 }
 
