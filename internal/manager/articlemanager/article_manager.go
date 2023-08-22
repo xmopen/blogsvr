@@ -5,11 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xmopen/golib/pkg/xlogging"
-
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
-
 	"github.com/xmopen/golib/pkg/localcache"
+	"github.com/xmopen/golib/pkg/xlogging"
 )
 
 var (
