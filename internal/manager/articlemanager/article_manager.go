@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/xmopen/golib/pkg/utils/timeutils"
+
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
 	"github.com/xmopen/golib/pkg/localcache"
 	"github.com/xmopen/golib/pkg/xlogging"
@@ -47,6 +49,15 @@ func loadAllPublishedArticles(param any) (any, error) {
 	articles, err := articlemod.AllArticles()
 	if err != nil {
 		return nil, err
+	}
+	// format time.
+	for _, article := range articles {
+		articleTime, err := timeutils.StringTimeToCNTime(article.Time)
+		if err != nil {
+			xlog.Errorf("string time to cntime err:[%+v] source:[%+v]", err, article.Time)
+			continue
+		}
+		article.Time = articleTime
 	}
 	publishedArticlesCacheValue := &articleCacheValue{
 		allArticlesCache:  articles,
