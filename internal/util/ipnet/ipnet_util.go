@@ -6,15 +6,10 @@ import (
 	"github.com/xmopen/golib/pkg/xconfig"
 )
 
-// Linux要切换,后续切换到lib.
-const xdbPath = xconfig.RuntimeENVWindowsGlobalConfigPath + "\\" + "ip2region.xdb"
-
-var (
-	ipDataBuffer []byte
-)
+var ipDataBuffer []byte
 
 func init() {
-	buffer, err := xdb.LoadContentFromFile(xdbPath)
+	buffer, err := xdb.LoadContentFromFile(xconfig.ParseIPXDBConfigPath)
 	if err != nil {
 		panic(err)
 	}

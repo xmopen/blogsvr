@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20230731060429-6ed8bf011875
 	github.com/redis/go-redis/v9 v9.0.5
-	github.com/xmopen/golib v0.0.9
+	github.com/xmopen/golib v0.0.10
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.3
 )
