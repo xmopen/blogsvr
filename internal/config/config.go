@@ -3,6 +3,8 @@ package config
 import (
 	"sync"
 
+	"github.com/spf13/viper"
+
 	"github.com/redis/go-redis/v9"
 
 	"github.com/xmopen/golib/pkg/xconfig"
@@ -32,6 +34,11 @@ func init() {
 	blogsDataBaseDNS = configInstance.Config().GetString("database.mysql.dns")
 	redisAddr = configInstance.Config().GetString("database.redis.addr")
 	redisPass = configInstance.Config().GetString("database.redis.pass")
+}
+
+// Config return a viper instance
+func Config() *viper.Viper {
+	return configInstance.Config()
 }
 
 // BlogsDataBase 博客DB.

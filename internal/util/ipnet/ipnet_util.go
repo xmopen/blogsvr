@@ -2,9 +2,13 @@
 package ipnetutil
 
 import (
+	"strings"
+
 	"github.com/lionsoul2014/ip2region/binding/golang/xdb"
 	"github.com/xmopen/golib/pkg/xconfig"
 )
+
+const defaultLocationIPCity = "Unknown"
 
 var ipDataBuffer []byte
 
@@ -28,4 +32,17 @@ func ParseIPLocation(ip string) (string, error) {
 		return "", err
 	}
 	return region, nil
+}
+
+// ParseCityFromIP parse city from ip
+func ParseCityFromIP(ip string) string {
+	location, err := ParseIPLocation(ip)
+	if err != nil {
+		return defaultLocationIPCity
+	}
+	locations := strings.Split(location, "|")
+	if len(locations) < 5 {
+		return defaultLocationIPCity
+	}
+	return locations[3]
 }

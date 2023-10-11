@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/xmopen/commonlib/pkg/errcode"
+
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
 
-	"github.com/xmopen/blogsvr/internal/errcode"
 	"github.com/xmopen/blogsvr/internal/manager/articlemanager"
 
 	"github.com/gin-gonic/gin"
@@ -41,8 +42,9 @@ func New() *API {
 
 // indexRequest index request.
 type indexRequest struct {
-	Limit int `json:"limit" form:"limit"`
-	Type  int `json:"type" form:"type"`
+	Offset int `json:"offset" form:"offset"`
+	Limit  int `json:"limit" form:"limit"`
+	Type   int `json:"type" form:"type"`
 }
 
 // IndexArticleList  article list info for index page.
@@ -76,10 +78,13 @@ func (a *API) articleListInfo(request *indexRequest) ([]*articlemod.Article, err
 		return nil, err
 	}
 	if request.Type == listTypeIndex {
-		if len(articles) >= request.Limit {
-			return articles[:request.Limit], nil
+		if len(articles) < request.Offset {
+			return nil, nil
 		}
-		return articles, nil
+		if len(articles) >= request.Limit {
+			return articles[request.Offset : request.Offset+request.Limit], nil
+		}
+		return articles[request.Offset:], nil
 	}
 	// get hot article list
 	return articles, nil

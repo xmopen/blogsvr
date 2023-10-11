@@ -9,6 +9,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/xmopen/golib/pkg/xlogging"
+
+	"github.com/xmopen/blogsvr/internal/config"
+
 	"github.com/gin-gonic/gin"
 	"github.com/xmopen/blogsvr/internal/endpoint"
 )
@@ -18,6 +22,7 @@ type app struct {
 	apiSvr *http.Server
 	cancel context.CancelFunc
 	close  chan error
+	xlog   *xlogging.Entry
 }
 
 // init 初始化svr.
@@ -52,17 +57,20 @@ func (a *app) quit() {
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r := gin.New()
+	addr := config.Config().GetString("server.blogsvr.http.addr")
 	app := &app{
 		engine: r,
 		apiSvr: &http.Server{
-			Addr:              ":8848",
+			Addr:              addr,
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 			WriteTimeout:      5 * time.Second,
 		},
 		cancel: cancel,
 		close:  make(chan error, 1), // 容量为1不阻塞.
+		xlog:   xlogging.Tag("blogsvr.main"),
 	}
+	app.xlog.Infof("http server running in addr:[%+v]", addr)
 
 	app.init(ctx)
 	app.quit()
