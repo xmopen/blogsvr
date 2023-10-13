@@ -253,8 +253,8 @@ github.com/ugorji/go v1.2.7/go.mod h1:nF9osbDWLy6bDVv/Rtoh6QgnvNDpmCalQV5urGCCS6
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
 github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4dU=
 github.com/ugorji/go/codec v1.2.11/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
-github.com/xmopen/commonlib v0.0.11 h1:8bP/FnTzAIxiiAIkyvb8+9A/R3FbpiYa5WRbTf1grsU=
-github.com/xmopen/commonlib v0.0.11/go.mod h1:xdFvxt7eELDEd8RUeA7x9hrslcQdP8Nr0Snw7UM5tJM=
+github.com/xmopen/commonlib v0.0.14 h1:JqSjKv+hLGR3/Geslm/APIrUrZdbSYkRXvGp8Csh0pw=
+github.com/xmopen/commonlib v0.0.14/go.mod h1:xdFvxt7eELDEd8RUeA7x9hrslcQdP8Nr0Snw7UM5tJM=
 github.com/xmopen/golib v0.0.13 h1:q4+aFXt5t2CTMj+Zvbw9CGN4d79fkBnz4eY3sC0FDZU=
 github.com/xmopen/golib v0.0.13/go.mod h1:uuNhk4+kUWJrbBkuuU3zd97y65ASRX47Ind2pc7ULwo=
 github.com/xmopen/gorpc v0.0.4 h1:hn6cJvcgUBypUfn5oCa1zye53gb7qxHEfeLiU9e3PMo=
