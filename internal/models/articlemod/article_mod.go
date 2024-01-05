@@ -2,6 +2,7 @@ package articlemod
 
 import (
 	"errors"
+	"time"
 
 	"github.com/xmopen/blogsvr/internal/config"
 	"gorm.io/gorm"
@@ -22,17 +23,18 @@ const (
 
 // Article 文章.
 type Article struct {
-	ID        int    `json:"id" gorm:"column:id"`
-	Title     string `json:"title" gorm:"column:title"`
-	Time      string `json:"time" gorm:"column:time"`
-	Author    string `json:"author" gorm:"column:author"`
-	Content   string `json:"content" gorm:"column:content"`
-	SubHead   string `json:"sub_head" gorm:"column:subhead"`
-	Img       string `json:"img" gorm:"column:img"`
-	Type      string `json:"type" gorm:"column:type"`
-	TypeID    string `json:"type_id" gorm:"column:type_id"` // 分类ID.
-	Publish   int    `json:"publish" gorm:"column:publish"` // 是否发布.
-	ReadCount int    `json:"read_count" gorm:"column:read_count"`
+	ID          int       `json:"id" gorm:"column:id"`
+	TypeID      int       `json:"type_id" gorm:"column:type_id"` // TypeID 分类ID.
+	Publish     int       `json:"publish" gorm:"column:publish"` // Publish 是否发布.
+	ReadCount   int       `json:"read_count" gorm:"column:read_count"`
+	Title       string    `json:"title" gorm:"column:title"`
+	Time        string    `json:"time" gorm:"column:time"`
+	Author      string    `json:"author" gorm:"column:author"`
+	Content     string    `json:"content" gorm:"column:content"`
+	SubHead     string    `json:"sub_head" gorm:"column:subhead"`
+	Img         string    `json:"img" gorm:"column:img"`
+	PublishTime time.Time `json:"publish_time" gorm:"column:publish_time"`
+	Type        string    `json:"type" gorm:"-"` // Type 分类
 }
 
 // AllArticles 获取所有文章信息.
@@ -41,10 +43,16 @@ func AllArticles() ([]*Article, error) {
 	result := config.BlogsDataBase().Table(articleTableName).Where("publish = ?", ArticlePublished).
 		Order("id desc").Find(&articleList)
 	if result.Error != nil {
-		// ErrRecordNotFound
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return articleList, nil
 		}
+		return nil, result.Error
+	}
+	for _, article := range articleList {
+		if article.Time != "" {
+			continue
+		}
+		article.Time = article.PublishTime.Format(time.DateTime)
 	}
 	return articleList, nil
 }

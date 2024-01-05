@@ -14,8 +14,7 @@ var (
 	authSvrInstance *AuthSvr
 	authSvrOnce     sync.Once
 
-	authSvrRPCServerNetWork = config.Config().GetString("server.authsvr.rpc.network")
-	authSvrRPCServerAddr    = config.Config().GetString("server.authsvr.rpc.addr")
+	authSvrRPCServerAddr = config.Config().GetString("server.blogsvr.rpc.authsvrdns")
 )
 
 // AuthSvr auth server
@@ -27,7 +26,7 @@ type AuthSvr struct {
 func Server() *AuthSvr {
 	authSvrOnce.Do(func() {
 		authSvrInstance = &AuthSvr{}
-		cli, _ := client.NewClient(authSvrRPCServerNetWork, authSvrRPCServerAddr, nil)
+		cli, _ := client.NewClient("tcpprotocol", authSvrRPCServerAddr, nil)
 		cli.Trace = true
 		authSvrInstance.rpcAuthServer = cli
 	})

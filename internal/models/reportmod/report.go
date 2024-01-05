@@ -10,7 +10,7 @@ const reportTableName = "t_report"
 
 var incrSQL = `update t_report set incr_value = incr_value + %d where id = %d limit 1;`
 
-// Report  report struct.
+// Report  report structural.
 type Report struct {
 	ID        int    `json:"id" gorm:"column:id"`
 	Desc      string `json:"desc" gorm:"column:desc"`

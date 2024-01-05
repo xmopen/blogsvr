@@ -2,8 +2,18 @@
 package articlemanager
 
 import (
+	"fmt"
+	"sort"
 	"sync"
 	"time"
+
+	"github.com/xmopen/blogsvr/internal/models/archivemod"
+	"github.com/xmopen/commonlib/pkg/database/xmarchive"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/xmopen/blogsvr/internal/config"
+	"github.com/xmopen/commonlib/pkg/protocol/xmeventprotocol"
+	"github.com/xmopen/commonlib/pkg/xredis"
 
 	"github.com/xmopen/golib/pkg/utils/timeutils"
 
@@ -22,7 +32,8 @@ var (
 
 // ArticleManager 文章管理器.
 type ArticleManager struct {
-	articleCache *localcache.LocalCache
+	articleCache    *localcache.LocalCache
+	hotArticleCache *localcache.LocalCache
 }
 
 // Manager 返回文章管理器. articlemanager.Manager()
@@ -30,11 +41,17 @@ func Manager() *ArticleManager {
 	if articleManagerInstance == nil {
 		articleManagerInstanceOnce.Do(func() {
 			articleManagerInstance = &ArticleManager{
-				articleCache: localcache.New(loadAllPublishedArticles, 128, 1*time.Hour),
+				articleCache:    localcache.New(loadAllPublishedArticles, 128, 24*time.Hour),
+				hotArticleCache: localcache.New(loadHotArticleList, 15, 24*time.Hour),
 			}
 		})
+		xredis.MultiSubScribe(config.BlogsRedis(), []string{string(xmeventprotocol.XMEventKeyOfArticleUpdate)},
+			func(m *redis.Message) {
+				fmt.Println("listener: " + m.String())
+				articleManagerInstance.hotArticleCache.ClearAllCache()
+				articleManagerInstance.articleCache.ClearAllCache()
+			})
 	}
-	// TODO: 后续是否进行PUBLISH通知.
 	return articleManagerInstance
 }
 
@@ -50,8 +67,15 @@ func loadAllPublishedArticles(param any) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	// format time.
+	archiveMapping, err := getArchiveMapping()
+	if err != nil {
+		return nil, err
+	}
 	for _, article := range articles {
+		archive, ok := archiveMapping[article.TypeID]
+		if ok {
+			article.Type = archive.Name
+		}
 		articleTime, err := timeutils.StringTimeToCNTime(article.Time)
 		if err != nil {
 			xlog.Errorf("string time to cntime err:[%+v] source:[%+v]", err, article.Time)
@@ -69,11 +93,52 @@ func loadAllPublishedArticles(param any) (any, error) {
 	return publishedArticlesCacheValue, nil
 }
 
+func loadHotArticleList(param any) (any, error) {
+	articles, err := articlemod.AllArticles()
+	if err != nil {
+		return nil, err
+	}
+	archiveMapping, err := getArchiveMapping()
+	if err != nil {
+		return nil, err
+	}
+	for _, article := range articles {
+		// 不需要缓存Content
+		article.Content = ""
+		article.Author = ""
+		article.SubHead = ""
+		article.Img = ""
+		archive, ok := archiveMapping[article.TypeID]
+		if ok {
+			article.Type = archive.Name
+		}
+	}
+	sort.Slice(articles, func(i, j int) bool {
+		return articles[i].ReadCount >= articles[j].ReadCount
+	})
+	return articles, nil
+}
+
+func getArchiveMapping() (map[int]*xmarchive.XMBlogsArchive, error) {
+	archiveList, err := archivemod.GetArchiveList()
+	if err != nil {
+		return nil, err
+	}
+	archiveMapping := make(map[int]*xmarchive.XMBlogsArchive)
+	for _, item := range archiveList {
+		archiveMapping[item.ID] = item
+	}
+	return archiveMapping, nil
+}
+
 // AllPublishedArticles 获取已经发布的所有文章.
 func (a *ArticleManager) AllPublishedArticles() ([]*articlemod.Article, error) {
 	itr, err := a.articleCache.LoadOrCreate("all_published_articles", "")
 	if err != nil {
 		return nil, err
+	}
+	if itr == nil {
+		return nil, nil
 	}
 	articleCache := itr.(*articleCacheValue)
 	return articleCache.allArticlesCache, nil
@@ -81,11 +146,27 @@ func (a *ArticleManager) AllPublishedArticles() ([]*articlemod.Article, error) {
 
 // Article 通过ArticleID获取Article.
 func (a *ArticleManager) Article(articleID int) (*articlemod.Article, error) {
-	itr, err := a.articleCache.LoadOrCreate("all_published_articles", "")
+	itr, err := a.articleCache.LoadOrCreate("all_published_articles", nil)
 	if err != nil {
 		return nil, err
+	}
+	if itr == nil {
+		return nil, nil
 	}
 	articleCache := itr.(*articleCacheValue)
 	article := articleCache.articleID2Article[articleID]
 	return article, nil
+}
+
+// GetHotArticleListWithLimit return host article list with limit
+func (a *ArticleManager) GetHotArticleListWithLimit(limit int) ([]*articlemod.Article, error) {
+	itr, err := a.hotArticleCache.LoadOrCreate("hot_articles", nil)
+	if err != nil {
+		return nil, err
+	}
+	articleList := itr.([]*articlemod.Article)
+	if len(articleList) > limit {
+		articleList = articleList[:limit]
+	}
+	return articleList, nil
 }

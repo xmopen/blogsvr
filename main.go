@@ -71,7 +71,6 @@ func main() {
 		xlog:   xlogging.Tag("blogsvr.main"),
 	}
 	app.xlog.Infof("http server running in addr:[%+v]", addr)
-
 	app.init(ctx)
 	app.quit()
 }

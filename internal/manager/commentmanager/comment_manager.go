@@ -41,11 +41,12 @@ type CommentManager struct {
 func Manager() *CommentManager {
 	commentManagerOnce.Do(func() {
 		commentManagerInstance = &CommentManager{
-			commentLocalCache: localcache.New(loadCommentByArticleID, 128, 1*time.Hour),
+			commentLocalCache: localcache.New(loadCommentByArticleID, 128, 24*time.Hour),
 		}
 		xgoroutine.SafeGoroutine(func() {
 			xredis.MultiSubScribe(config.BlogsRedis(), []string{string(xmeventprotocol.XMEventKeyOfArticleCommentUpdate)},
-				func(_ *redis.Message) {
+				func(m *redis.Message) {
+					fmt.Println("listener: " + m.String())
 					commentManagerInstance.commentLocalCache.ClearAllCache()
 				})
 		})

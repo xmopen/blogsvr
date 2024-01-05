@@ -7,8 +7,8 @@ require (
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20230731060429-6ed8bf011875
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/spf13/viper v1.16.0
-	github.com/xmopen/commonlib v0.0.14
-	github.com/xmopen/golib v0.0.13
+	github.com/xmopen/commonlib v0.0.20
+	github.com/xmopen/golib v0.0.14
 	github.com/xmopen/gorpc v0.0.4
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.3

@@ -1,7 +1,9 @@
 package archive
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -35,27 +37,36 @@ func New() *API {
 // GetArchiveList  return archive list
 func (a *API) GetArchiveList(c *gin.Context) {
 	xlog := ginhelper.Log(c)
-	request := &getArchiveRequest{}
-	if err := c.ShouldBindQuery(request); err != nil {
-		xlog.Errorf("bind query err:[%+v]", err)
-		c.JSON(http.StatusOK, errcode.ErrorParam)
-		return
-	}
-	xlog.Infof("request:[%+v]", request)
+	xlog.Infof("查询分类")
 	archiveList, err := archivemanager.Manager().GetArchiveList()
 	if err != nil {
+		fmt.Println(err.Error())
 		xlog.Errorf("get archive list err:[%+v]", err)
 		c.JSON(http.StatusOK, errcode.ErrorSystemError)
 		return
-	}
-	if request.Limit > 0 {
-		if request.Limit > len(archiveList) {
-			request.Limit = len(archiveList)
-		}
-		archiveList = archiveList[request.Offset:request.Limit]
 	}
 	if archiveList == nil {
 		archiveList = make([]*xmarchive.XMBlogsArchive, 0)
 	}
 	c.JSON(http.StatusOK, errcode.Success(archiveList))
+}
+
+// GetArchiveArticleList 获取分类下文章列表
+func (a *API) GetArchiveArticleList(c *gin.Context) {
+	archiveIDStr := c.Query("archive_id")
+	if archiveIDStr == "" {
+		c.JSON(http.StatusOK, errcode.ErrorParam)
+		return
+	}
+	archiveID, err := strconv.Atoi(archiveIDStr)
+	if err != nil {
+		c.JSON(http.StatusOK, errcode.ErrorParam)
+		return
+	}
+	articleList, err := archivemanager.Manager().GetArticleWithArchiveID(archiveID)
+	if err != nil {
+		c.JSON(http.StatusOK, errcode.ErrorSystemError)
+		return
+	}
+	c.JSON(http.StatusOK, errcode.Success(articleList))
 }

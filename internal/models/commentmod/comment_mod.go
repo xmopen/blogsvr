@@ -20,7 +20,7 @@ const (
 
 const tXMCommentTableName = "t_xm_comment"
 
-// Comment comment struct
+// Comment comment structural
 type Comment struct {
 	Username    string `json:"username"`
 	Icon        string `json:"icon"`
@@ -42,7 +42,7 @@ func GetCommentListByArticleID(articleID int) ([]*xmcomment.XMComment, error) {
 	return resultList, nil
 }
 
-// CreateXMComment create a comment for article
+// CreateXMComment creational a comment for article
 func CreateXMComment(comment *xmcomment.XMComment) error {
 	return config.BlogsDataBase().Table(tXMCommentTableName).Create(comment).Error
 }

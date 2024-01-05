@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/xmopen/commonlib/pkg/apphelper/ginhelper"
 
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
 
@@ -54,6 +57,10 @@ func (a *API) ArticleInfo(c *gin.Context) {
 		c.JSON(http.StatusOK, errcode.ErrorParam)
 		return
 	}
+	if articleInfo == nil {
+		c.JSON(http.StatusOK, errcode.ErrorSystemError)
+		return
+	}
 	xgoroutine.SafeGoroutine(func() {
 		a.updateArticleReadCount(xlog, articleID, c.ClientIP())
 	})
@@ -80,4 +87,27 @@ func (a *API) isUpdateArticle(xlog *xlogging.Entry, updateKey string) bool {
 		xlog.Errorf("get xm update red count limit err:[%+v] update key:[%+v]", err, updateKey)
 	}
 	return isUpdated > 0
+}
+
+// GetHotArticleList return host article list
+func (a *API) GetHotArticleList(c *gin.Context) {
+	limitStr := c.Query("limit")
+	if strings.TrimSpace(limitStr) == "" {
+		c.JSON(http.StatusOK, errcode.ErrorParam)
+		return
+	}
+	limit, err := strconv.Atoi(limitStr)
+	xlog := ginhelper.Log(c)
+	if err != nil {
+		xlog.Errorf("strconv limit err:[%+v] source:[%+v]", err, limitStr)
+		c.JSON(http.StatusOK, errcode.ErrorParam)
+		return
+	}
+	articleList, err := articlemanager.Manager().GetHotArticleListWithLimit(limit)
+	if err != nil {
+		xlog.Errorf("get hot article list err:[%+v] limit:[%+v]", err, limit)
+		c.JSON(http.StatusOK, errcode.ErrorSystemError)
+		return
+	}
+	c.JSON(http.StatusOK, errcode.Success(articleList))
 }

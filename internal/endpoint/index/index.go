@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/xmopen/golib/pkg/xgoroutine"
+
 	"github.com/xmopen/commonlib/pkg/errcode"
 
 	"github.com/xmopen/blogsvr/internal/models/articlemod"
@@ -63,12 +65,11 @@ func (a *API) IndexArticleList(c *gin.Context) {
 		c.JSON(http.StatusOK, errcode.ErrorGetIndexArticleList)
 		return
 	}
+	// report.
+	xgoroutine.SafeGoroutine(func() {
+
+	})
 	c.JSON(http.StatusOK, errcode.Success(a.convertModel(articleList)))
-}
-
-// IndexHotArticle 首页热门文章.
-func (a *API) IndexHotArticle(c *gin.Context) {
-
 }
 
 // articleListInfo get article list.

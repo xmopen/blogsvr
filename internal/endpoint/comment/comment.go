@@ -99,7 +99,7 @@ func (a *API) Comment(c *gin.Context) {
 	}
 	xlog.Infof("add comment from articleid:[%+v] value:[%+v]", request.ArticleID, xmComment)
 	if err = commentmod.CreateXMComment(xmComment); err != nil {
-		xlog.Errorf("create xmcomment err:[%+v]", err)
+		xlog.Errorf("creational xmcomment err:[%+v]", err)
 		// TODO: errcode name update
 		c.JSON(http.StatusOK, errcode.ErrorCreateArticleError)
 		return
