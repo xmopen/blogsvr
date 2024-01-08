@@ -8,4 +8,8 @@ docker rmi blogsvr:latest
 
 docker build -t blogsvr .
 
-docker run -d -p 8848:8848 --name blogsvr -v /data/config:/data/config blogsvr:latest
+go mod tidy
+
+go build -o ./svrmain ./*.go
+# docker run -e TZ=Asia/Shanghai
+docker run -d -p 8848:8848 -e TZ=Asia/Shanghai --memory=50m --cpus=0.3 --oom-kill-disable=true  --name blogsvr -v /data/config:/data/config blogsvr:latest

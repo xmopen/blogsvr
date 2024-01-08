@@ -2,7 +2,7 @@ FROM golang:1.20
 LABEL authors="zhenxinma"
 # 1、设置工作环境.
 ENV GO111MODULE=on
-ENV GOPROXY="https://goproxy.cn"
+ENV GOPROXY="https://goproxy.cn,direct"
 # 2、在容器内设置/data/app为当前工作目录.
 # WORKDIR 不存在则会创建.
 WORKDIR /data/app/bin
@@ -13,7 +13,10 @@ COPY . .
 RUN mkdir /data/config
 
 # 4、打包go文件.
-RUN go build -o ./svrmain ./*.go
+#RUN go build -o ./svrmain ./*.go
+
+# COPY ./svrmain /data/app/bin/svrmain
+COPY ./svrmain .
 
 # 5、暴露端口
 EXPOSE 8848
