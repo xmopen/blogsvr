@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/xmopen/golib/pkg/xgoroutine"
+	"github.com/xmopen/commonlib/pkg/apphelper/ginhelper"
 
 	"github.com/xmopen/commonlib/pkg/errcode"
 
@@ -52,10 +52,12 @@ type indexRequest struct {
 // IndexArticleList  article list info for index page.
 func (a *API) IndexArticleList(c *gin.Context) {
 	request := &indexRequest{}
+	xlog := ginhelper.Log(c)
 	if err := c.ShouldBindQuery(request); err != nil {
 		c.JSON(http.StatusOK, errcode.ErrorGetIndexArticleList)
 		return
 	}
+	xlog.Infof("index list req:[%+v]", request)
 	if request.Limit <= 0 {
 		c.JSON(http.StatusOK, errcode.ErrorParam)
 		return
@@ -65,10 +67,6 @@ func (a *API) IndexArticleList(c *gin.Context) {
 		c.JSON(http.StatusOK, errcode.ErrorGetIndexArticleList)
 		return
 	}
-	// report.
-	xgoroutine.SafeGoroutine(func() {
-
-	})
 	c.JSON(http.StatusOK, errcode.Success(a.convertModel(articleList)))
 }
 
@@ -87,7 +85,6 @@ func (a *API) articleListInfo(request *indexRequest) ([]*articlemod.Article, err
 		}
 		return articles[request.Offset:], nil
 	}
-	// get hot article list
 	return articles, nil
 }
 

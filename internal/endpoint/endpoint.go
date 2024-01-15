@@ -4,6 +4,8 @@ package endpoint
 import (
 	"runtime/debug"
 
+	"github.com/xmopen/blogsvr/internal/endpoint/probe"
+
 	"github.com/gin-gonic/gin"
 	"github.com/xmopen/blogsvr/internal/endpoint/archive"
 	"github.com/xmopen/blogsvr/internal/endpoint/article"
@@ -23,6 +25,8 @@ func Init(r *gin.Engine) {
 			}
 		}()
 	})
+
+	r.GET("/openxm/api/v1/probe", probe.Health)
 
 	group := r.Group("/openxm/api/v1/index")
 	indexAPI := index.New()

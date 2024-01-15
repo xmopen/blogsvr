@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blogsvr
+  labels:
+    app: blogsvr
+spec:
+  selector:
+    matchLabels:
+      app: blogsvr
+  template:
+    metadata:
+      labels:
+        app: blogsvr
+    spec:
+      containers:
+        - name: blogsvr
+          image: openxm/blogsvr:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8848
+              name: blogsvrport
+          livenessProbe:
+            httpGet:
+              path: /openxm/api/v1/probe
+              port: 8848
+            initialDelaySeconds: 5
+            periodSeconds: 60
+          resources:
+            limits:
+              cpu: "0.2" # 指在说明容器可使用的CPU最大限度为0.2
+              memory: "70Mi"
+            requests: # 指在说明容器在调度到某个Node上时需要的最小资源限制
+              cpu: "0.1"
+              memory: "40Mi"

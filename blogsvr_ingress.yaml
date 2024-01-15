@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blogsvringress
+spec:
+  rules:
+    - host: openxm.cn
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: blogsvrhttp
+                port:
+                  number: 30001
