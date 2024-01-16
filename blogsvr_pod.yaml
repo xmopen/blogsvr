@@ -24,7 +24,7 @@ spec:
             httpGet:
               path: /openxm/api/v1/probe
               port: 8848
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 60
           resources:
             limits:

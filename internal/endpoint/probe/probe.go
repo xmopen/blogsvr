@@ -1,8 +1,9 @@
 package probe
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/xmopen/commonlib/pkg/apphelper/ginhelper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xmopen/commonlib/pkg/errcode"
@@ -10,6 +11,6 @@ import (
 
 // Health kubernetes HTTP 探针检测
 func Health(c *gin.Context) {
-	fmt.Println("Kubernetes Health Probe.")
+	ginhelper.Log(c).Infof("kubernetes health probe")
 	c.JSON(http.StatusOK, errcode.Success("success"))
 }
