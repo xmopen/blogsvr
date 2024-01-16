@@ -6,10 +6,10 @@ metadata:
     app: blogsvr
 spec:
   type: NodePort
+  selector:
+    app: blogsvr
   ports:
     - port: 30001 # Pod访问端口： 通过使用serviceip:port 来访问集群内的服务
       targetPort: 8848
       protocol: TCP
       name: blogsvrport
-  selector:
-    app: blogsvr
