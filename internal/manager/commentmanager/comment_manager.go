@@ -74,7 +74,7 @@ func loadCommentByArticleID(param any) (any, error) {
 			XMAccount: cmt.Account,
 		}, response)
 		if err != nil {
-			xlog.Errorf("get userinfo err:[%+v]", err)
+			xlog.Errorf("get userinfo rpc err:[%+v]", err)
 			continue
 		}
 		commentTime, err := timeutils.StringTimeToCNTime(cmt.CreateTime.Format(time.DateTime))

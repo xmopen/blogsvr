@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/xmopen/golib/pkg/xgoroutine"
+
 	"github.com/xmopen/golib/pkg/xlogging"
 
 	"github.com/xmopen/blogsvr/internal/config"
@@ -70,6 +72,11 @@ func main() {
 		close:  make(chan error, 1), // 容量为1不阻塞.
 		xlog:   xlogging.Tag("blogsvr.main"),
 	}
+	xgoroutine.SafeGoroutine(func() {
+		authSvrHostName := os.Getenv("AUTHSVR_SERVICE_HOST")
+		authSvrHostPort := os.Getenv("AUTHSVR_SERVICE_PORT_AUTHSVRRPCPORT")
+		app.xlog.Infof("authsvr service inner kubernetes ip:[%+v] port:[%+v]", authSvrHostName, authSvrHostPort)
+	})
 	app.xlog.Infof("http server running in addr:[%+v]", addr)
 	app.init(ctx)
 	app.quit()
