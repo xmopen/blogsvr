@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/xmopen/golib/pkg/localcache/lru"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/xmopen/blogsvr/internal/config"
 	"github.com/xmopen/commonlib/pkg/protocol/xmeventprotocol"
@@ -16,7 +18,6 @@ import (
 
 	"github.com/xmopen/blogsvr/internal/models/archivemod"
 	"github.com/xmopen/commonlib/pkg/database/xmarchive"
-	"github.com/xmopen/golib/pkg/localcache"
 )
 
 var (
@@ -26,24 +27,24 @@ var (
 
 // ArchiveManager archive manager
 type ArchiveManager struct {
-	archiveLocalCache  *localcache.LocalCache
-	archiveArticleList *localcache.LocalCache
+	archiveLocalCache  *lru.LocalCache
+	archiveArticleList *lru.LocalCache
 }
 
 // Manager return an archive manager single instance
 func Manager() *ArchiveManager {
 	initArchiveManagerOnce.Do(func() {
 		archiveManagerInstance = &ArchiveManager{
-			archiveLocalCache:  localcache.New(loadArchiveList, 32, 24*time.Hour),
-			archiveArticleList: localcache.New(loadArchiveArticleList, 16, 24*time.Hour),
+			archiveLocalCache:  lru.New(24*time.Hour, 32, loadArchiveList),
+			archiveArticleList: lru.New(24*time.Hour, 16, loadArchiveArticleList),
 		}
 
 		xredis.MultiSubScribe(config.BlogsRedis(), []string{string(xmeventprotocol.XMEventKeyOfArchiveUpdate)},
 			func(m *redis.Message) {
 				time.Sleep(5 * time.Second)
 				fmt.Println("listener msg:" + m.String())
-				archiveManagerInstance.archiveLocalCache.ClearAllCache()
-				archiveManagerInstance.archiveArticleList.ClearAllCache()
+				archiveManagerInstance.archiveLocalCache.ClearAll()
+				archiveManagerInstance.archiveArticleList.ClearAll()
 			})
 	})
 	return archiveManagerInstance
@@ -84,7 +85,7 @@ func loadArchiveArticleList(param any) (any, error) {
 
 // GetArchiveList return blogs archive list
 func (m *ArchiveManager) GetArchiveList() ([]*xmarchive.XMBlogsArchive, error) {
-	itr, err := m.archiveLocalCache.LoadOrCreate("archive_list", nil)
+	itr, err := m.archiveLocalCache.Load("archive_list", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func (m *ArchiveManager) GetArchiveList() ([]*xmarchive.XMBlogsArchive, error) {
 }
 
 func (m *ArchiveManager) GetArticleWithArchiveID(archiveID int) ([]*articlemod.Article, error) {
-	itr, err := m.archiveArticleList.LoadOrCreate("archive_article_cache", archiveID)
+	itr, err := m.archiveArticleList.Load("archive_article_cache", archiveID)
 	if err != nil {
 		return nil, err
 	}

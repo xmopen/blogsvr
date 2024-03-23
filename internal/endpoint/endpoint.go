@@ -4,6 +4,8 @@ package endpoint
 import (
 	"runtime/debug"
 
+	pathreport "github.com/xmopen/blogsvr/internal/endpoint/report"
+
 	"github.com/xmopen/blogsvr/internal/endpoint/probe"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +29,8 @@ func Init(r *gin.Engine) {
 	})
 
 	r.GET("/openxm/api/v1/probe", probe.Health)
+	r.GET("/zhenxinma", pathreport.PathReport)
+	r.GET("/openxm/api/v1/report", pathreport.PathReportWithRequestPath)
 
 	group := r.Group("/openxm/api/v1/index")
 	indexAPI := index.New()
@@ -46,4 +50,5 @@ func Init(r *gin.Engine) {
 	group = r.Group("/openxm/api/v1/archive")
 	group.GET("/list", archiveAPI.GetArchiveList)
 	group.GET("/list/article", archiveAPI.GetArchiveArticleList)
+
 }

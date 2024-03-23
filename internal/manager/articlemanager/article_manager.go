@@ -7,18 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xmopen/blogsvr/internal/models/archivemod"
-	"github.com/xmopen/commonlib/pkg/database/xmarchive"
-
 	"github.com/redis/go-redis/v9"
 	"github.com/xmopen/blogsvr/internal/config"
+	"github.com/xmopen/blogsvr/internal/models/archivemod"
+	"github.com/xmopen/blogsvr/internal/models/articlemod"
+	"github.com/xmopen/commonlib/pkg/database/xmarchive"
 	"github.com/xmopen/commonlib/pkg/protocol/xmeventprotocol"
 	"github.com/xmopen/commonlib/pkg/xredis"
-
+	"github.com/xmopen/golib/pkg/localcache/lru"
 	"github.com/xmopen/golib/pkg/utils/timeutils"
-
-	"github.com/xmopen/blogsvr/internal/models/articlemod"
-	"github.com/xmopen/golib/pkg/localcache"
 	"github.com/xmopen/golib/pkg/xlogging"
 )
 
@@ -32,8 +29,8 @@ var (
 
 // ArticleManager 文章管理器.
 type ArticleManager struct {
-	articleCache    *localcache.LocalCache
-	hotArticleCache *localcache.LocalCache
+	articleCache    *lru.LocalCache
+	hotArticleCache *lru.LocalCache
 }
 
 // Manager 返回文章管理器. articlemanager.Manager()
@@ -41,15 +38,15 @@ func Manager() *ArticleManager {
 	if articleManagerInstance == nil {
 		articleManagerInstanceOnce.Do(func() {
 			articleManagerInstance = &ArticleManager{
-				articleCache:    localcache.New(loadAllPublishedArticles, 128, 24*time.Hour),
-				hotArticleCache: localcache.New(loadHotArticleList, 15, 24*time.Hour),
+				articleCache:    lru.New(24*time.Hour, 128, loadAllPublishedArticles),
+				hotArticleCache: lru.New(24*time.Hour, 15, loadHotArticleList),
 			}
 		})
 		xredis.MultiSubScribe(config.BlogsRedis(), []string{string(xmeventprotocol.XMEventKeyOfArticleUpdate)},
 			func(m *redis.Message) {
 				fmt.Println("listener: " + m.String())
-				articleManagerInstance.hotArticleCache.ClearAllCache()
-				articleManagerInstance.articleCache.ClearAllCache()
+				articleManagerInstance.hotArticleCache.ClearAll()
+				articleManagerInstance.articleCache.ClearAll()
 			})
 	}
 	return articleManagerInstance
@@ -133,7 +130,7 @@ func getArchiveMapping() (map[int]*xmarchive.XMBlogsArchive, error) {
 
 // AllPublishedArticles 获取已经发布的所有文章.
 func (a *ArticleManager) AllPublishedArticles() ([]*articlemod.Article, error) {
-	itr, err := a.articleCache.LoadOrCreate("all_published_articles", "")
+	itr, err := a.articleCache.Load("all_published_articles", "")
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +143,7 @@ func (a *ArticleManager) AllPublishedArticles() ([]*articlemod.Article, error) {
 
 // Article 通过ArticleID获取Article.
 func (a *ArticleManager) Article(articleID int) (*articlemod.Article, error) {
-	itr, err := a.articleCache.LoadOrCreate("all_published_articles", nil)
+	itr, err := a.articleCache.Load("all_published_articles", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +157,7 @@ func (a *ArticleManager) Article(articleID int) (*articlemod.Article, error) {
 
 // GetHotArticleListWithLimit return host article list with limit
 func (a *ArticleManager) GetHotArticleListWithLimit(limit int) ([]*articlemod.Article, error) {
-	itr, err := a.hotArticleCache.LoadOrCreate("hot_articles", nil)
+	itr, err := a.hotArticleCache.Load("hot_articles", nil)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/xmopen/golib/pkg/localcache/lru"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/xmopen/commonlib/pkg/protocol/xmeventprotocol"
 	"github.com/xmopen/commonlib/pkg/xredis"
@@ -23,7 +25,6 @@ import (
 	"github.com/xmopen/commonlib/pkg/server/authserver"
 
 	"github.com/xmopen/blogsvr/internal/models/commentmod"
-	"github.com/xmopen/golib/pkg/localcache"
 )
 
 var (
@@ -34,20 +35,20 @@ var (
 // CommentManager comment manager
 type CommentManager struct {
 	// commentLocalCache comment cache
-	commentLocalCache *localcache.LocalCache
+	commentLocalCache *lru.LocalCache
 }
 
 // Manager return a comment manager
 func Manager() *CommentManager {
 	commentManagerOnce.Do(func() {
 		commentManagerInstance = &CommentManager{
-			commentLocalCache: localcache.New(loadCommentByArticleID, 128, 24*time.Hour),
+			commentLocalCache: lru.New(24*time.Hour, 128, loadCommentByArticleID),
 		}
 		xgoroutine.SafeGoroutine(func() {
 			xredis.MultiSubScribe(config.BlogsRedis(), []string{string(xmeventprotocol.XMEventKeyOfArticleCommentUpdate)},
 				func(m *redis.Message) {
 					fmt.Println("listener: " + m.String())
-					commentManagerInstance.commentLocalCache.ClearAllCache()
+					commentManagerInstance.commentLocalCache.ClearAll()
 				})
 		})
 
@@ -97,7 +98,7 @@ func loadCommentByArticleID(param any) (any, error) {
 
 // GetArticleComment get article comment list
 func (m *CommentManager) GetArticleComment(articleID int) ([]*commentmod.Comment, error) {
-	itr, err := m.commentLocalCache.LoadOrCreate(fmt.Sprintf("article_comment_%d", articleID), articleID)
+	itr, err := m.commentLocalCache.Load(fmt.Sprintf("article_comment_%d", articleID), articleID)
 	if err != nil {
 		return nil, err
 	}
